@@ -1,8 +1,8 @@
 class Boid {
     constructor(environment) {
         this.environment = environment;
-        this.x = Math.random() * (SCREEN_WIDTH - 1.2 * TURN_ZONE) + 1.2 * TURN_ZONE;
-        this.y = Math.random() * (SCREEN_HEIGHT - 1.2 * TURN_ZONE) + 1.2 * TURN_ZONE;
+        this.x = Math.random() * SCREEN_WIDTH;
+        this.y = Math.random() * SCREEN_HEIGHT;
         this.dx = Math.random() * (MAX_SPEED - MIN_SPEED) + MIN_SPEED;
         this.dy = Math.random() * (MAX_SPEED - MIN_SPEED) + MIN_SPEED;
         this.neighbors = [];
@@ -29,15 +29,15 @@ class Boid {
 
     avoidBounds() {
         if (this.x < TURN_ZONE) {
-            this.dx += 0.5;
+            this.dx += BOID_SMOOTH_TURNS_RATE;
         } else if (this.x > SCREEN_WIDTH - TURN_ZONE) {
-            this.dx -= 0.5;
+            this.dx -= BOID_SMOOTH_TURNS_RATE;
         }
 
         if (this.y < TURN_ZONE) {
-            this.dy += 0.5;
+            this.dy += BOID_SMOOTH_TURNS_RATE;
         } else if (this.y > SCREEN_HEIGHT - TURN_ZONE) {
-            this.dy -= 0.5;
+            this.dy -= BOID_SMOOTH_TURNS_RATE;
         }
     }
 
@@ -69,13 +69,6 @@ class Boid {
             }
         }
         this.neighbors = res;
-        //let res = [];
-        /*
-        for (const boid of this.environment.boids) {
-            if (boid !== this) {
-                res.push(boid);
-            }
-        }*/
         return res;
     }
 
@@ -90,27 +83,26 @@ class Boid {
             }
         }
 
-        this.dx += 0.03 * addX;
-        this.dy += 0.03 * addY;
+        this.dx += 0.005 * addX;
+        this.dy += 0.005 * addY;
     }
 
     flyTogether() {
-        let cpt = 1;
         if (this.neighbors.length > 0) {
 
             let speedXAvg = this.dx;
             let speedYAvg = this.dy;
             
             for (const n of this.neighbors) {
-                if (this.distance(n) < DETECTION_RANGE) {
+                let dist = this.distance(n);
+                if (dist < DETECTION_RANGE && dist > BOID_PERSONAL_SPACE) {
                     speedXAvg += n.dx;
                     speedYAvg += n.dy;
-                    cpt++;
                 }
             }
             
-            speedXAvg /= cpt;
-            speedYAvg /= cpt;
+            speedXAvg /= this.neighbors.length;
+            speedYAvg /= this.neighbors.length;
 
             this.dx += SPEED_CONVERGENCE * speedXAvg;
             this.dy += SPEED_CONVERGENCE * speedYAvg;
@@ -118,12 +110,11 @@ class Boid {
     }
 
     move() {
-        //this.getTile();
         this.neighbors = this.getNeighbors();
 
         this.avoidBounds();
-        this.flyTogether();
         this.avoidCollisions();
+        this.flyTogether();
 
         this.checkSpeed();
         this.x += this.dx;

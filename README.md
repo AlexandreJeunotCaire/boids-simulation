@@ -26,16 +26,14 @@ L'idée est que chaque robot, appelé **Boid** (pour Bird-oid) doit suivre quelq
 En outre, j'ai ajouté une quatrième règle :
 - En présence d'un prédateur, essayer de l'éviter
 
-<img src="./img/avoid-predator.gif" alt="Les boids évitent le prédateur" style="margin: auto;"/>
-
 ## Installation
 
 ### Récupération des sources
 
 * Depuis l'invité de commandes (HTTP):
 ```bash
-$ git clone https://github.com/jeunotca/starling-murmurations-simulation.git
-$ cd starling-murmurations-simulation.git
+$ git clone https://github.com/jeunotca/boids-simulation.git
+$ cd boids-simulation.git
 ```
 
 ### Dépendances

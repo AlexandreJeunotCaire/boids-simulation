@@ -2,10 +2,10 @@ class Environment {
     constructor() {
         this.tiles = this.createTiles();
         this.boids = this.createFlock();
-
+        
         for (const boid of this.boids) {
             for (const tile of this.tiles) {
-                if (boid.x >= tile.x && boid.x < tile.x + TILE_SIDE && boid.y >= tile.y && boid.y < TILE_SIDE + tile.y) {
+                if (tile.contains(boid.x, boid.y)) {
                     boid.tile = tile;
                     tile.boids.push(boid);
                     break;
@@ -23,34 +23,43 @@ class Environment {
                 p.createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
             }
 
+            p.mouseClicked = () => {
+                PREDATOR_ALIVE = !PREDATOR_ALIVE;
+            }
+
             p.draw = () => {
+                console.log(p.mouseX)
                 p.background("#202020");
+                if (PREDATOR_ALIVE) {
+                    p.fill('#8b0000');
+                    p.circle(p.mouseX, p.mouseY, 2 * PREDATOR_SIZE)
+                }
+                /*
+                p.fill("#202020")
+                p.stroke("#ffffff")
+                for (const tile of this.tiles) {
+                    p.rect(tile.x, tile.y, TILE_SIDE, TILE_SIDE)
+                }
+                */
+                p.fill('aqua');
                 p.noStroke();
                 for (const boid of this.boids) {
-                    p.fill('aqua');
-                    p.triangle(boid.x, boid.y, boid.x - 4, boid.y + 10, boid.x + 4, boid.y + 10);
+                    p.push();
+                    p.translate(boid.x, boid.y);
+                    p.rotate(Math.atan2(boid.dx, -boid.dy))
+                    p.triangle(0, 0, 5, 20, -5, 20)
+                    p.pop();
                     /*
-                    p.fill('red');
-                    p.circle(boid.x, boid.y, BOID_PERSONAL_SPACE);
                     p.fill('green');
                     p.circle(boid.x, boid.y, DETECTION_RANGE);
+                    p.fill('red');
+                    p.circle(boid.x, boid.y, BOID_PERSONAL_SPACE);
                     */
-                    boid.move();
+                    boid.move(p.mouseX, p.mouseY);
                 }
 
-                while (this.boids.length < NB_BOIDS) {
-                    console.log("plop")
-                    let boid = new Boid(this);
-                    for (const tile of this.tiles) {
-                        if (boid.x >= tile.x && boid.x < tile.x + TILE_SIDE && boid.y >= tile.y && boid.y < TILE_SIDE + tile.y) {
-                            boid.tile = tile;
-                            tile.boids.push(boid);
-                            break;
-                        }
-                    }
-                    this.boids.push(boid);
-                }
             }
+
         }, 'boids');
     }
 

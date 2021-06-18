@@ -9,21 +9,35 @@ class Boid {
         this.tile = undefined;
     }
 
+    draw() {
+        push();
+        noStroke();
+        translate(this.x, this.y)
+        rotate(Math.atan2(this.dx, -this.dy))
+        triangle(0, 0, 7, 25, -7, 25)
+        pop();
+    }
+
     distance(other) {
         return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
     }
 
-    checkSpeed() {
+    checkSpeed() { /*
         if (this.dx > MAX_SPEED) {
-            this.dx-=0.9;
+            this.dx -= 0.9;
         } else if (this.dx < MIN_SPEED) {
-            this.dx+=0.9;
+            this.dx += 0.9;
         }
-
         if (this.dy > MAX_SPEED) {
-            this.dy-=0.9;
-        } else if (this.dy < MIN_SPEED - 5) {
-            this.dy+=0.9;
+            this.dy -= 0.9;
+        } else if (this.dy < MIN_SPEED) {
+            this.dy += 0.9;
+        }*/
+
+        let speed = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+        if (speed > 15) {
+            this.dx = (this.dx / speed) * 10;
+            this.dy = (this.dy / speed) * 10;
         }
     }
 
@@ -41,9 +55,16 @@ class Boid {
         }
     }
 
+    avoidDanger(x, y) {
+        if (Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2) < PREDATOR_SIZE) {
+            this.dx += (this.x - x) * DODGE_RATE;
+            this.dy += (this.y - y) * DODGE_RATE;
+        }
+    }
+
     getTile() {
         for (const tile of this.environment.tiles) {
-            if (this.x >= tile.x && this.x <= tile.x + TILE_SIDE &&  this.y >= tile.y && this.y <= tile.y + TILE_SIDE) {
+            if (tile.contains(this.x, this.y)) {
                 this.tile.removeBoid(this);
                 tile.boids.push(this);
                 this.tile = tile;
@@ -75,7 +96,6 @@ class Boid {
     avoidCollisions() {
         let addX = 0;
         let addY = 0;
-
         for (const neighbor of this.neighbors) {
             if (this.distance(neighbor) < BOID_PERSONAL_SPACE) {
                 addX += this.x - neighbor.x;
@@ -83,38 +103,57 @@ class Boid {
             }
         }
 
-        this.dx += 0.005 * addX;
-        this.dy += 0.005 * addY;
+        this.dx += DODGE_RATE * addX;
+        this.dy += DODGE_RATE * addY;
     }
 
     flyTogether() {
         if (this.neighbors.length > 0) {
-
-            let speedXAvg = this.dx;
-            let speedYAvg = this.dy;
             
+            let avgX = 0;
+            let avgY = 0;
+            let speedXAvg = 0;
+            let speedYAvg = 0;
+            let closeNeighbors = 0;
+
             for (const n of this.neighbors) {
                 let dist = this.distance(n);
                 if (dist < DETECTION_RANGE && dist > BOID_PERSONAL_SPACE) {
+                    closeNeighbors++;
+                    avgX += n.x;
+                    avgY += n.y;
                     speedXAvg += n.dx;
                     speedYAvg += n.dy;
                 }
             }
             
-            speedXAvg /= this.neighbors.length;
-            speedYAvg /= this.neighbors.length;
+            if (closeNeighbors > 0) {
 
-            this.dx += SPEED_CONVERGENCE * speedXAvg;
-            this.dy += SPEED_CONVERGENCE * speedYAvg;
+                avgX /= closeNeighbors;
+                avgY /= closeNeighbors;
+
+                speedXAvg /= closeNeighbors;
+                speedYAvg /= closeNeighbors;
+                
+                this.dx += POSITION_CONVERGENCE * (avgX - this.x);
+                this.dy += POSITION_CONVERGENCE * (avgY - this.y);
+
+                this.dx += SPEED_CONVERGENCE * speedXAvg;
+                this.dy += SPEED_CONVERGENCE * speedYAvg;
+            }
         }
     }
 
-    move() {
+    move(x, y) {
         this.neighbors = this.getNeighbors();
 
         this.avoidBounds();
         this.avoidCollisions();
         this.flyTogether();
+
+        if (PREDATOR_ALIVE) {
+            this.avoidDanger(x, y);
+        }
 
         this.checkSpeed();
         this.x += this.dx;

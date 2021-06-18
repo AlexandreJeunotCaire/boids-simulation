@@ -1,15 +1,22 @@
 let NB_BOIDS = 200;
-let BOID_SPEED = 1;
-let DETECTION_RANGE = 75;
-let BOID_SMOOTH_TURNS_RATE = 0.75;
-let BOID_PERSONAL_SPACE = 50;
-let BOID_SIZE = 1;
-let MAX_SPEED = 4;
-let MIN_SPEED = -4;
-let TILE_SIDE = 60;
-let SPEED_CONVERGENCE = 0.075;
 
-let TURN_ZONE = 150;
+let DETECTION_RANGE = 45;
+let BOID_PERSONAL_SPACE = 20;
+
+let BOID_SMOOTH_TURNS_RATE = 1;
+let POSITION_CONVERGENCE = 0.005;
+let SPEED_CONVERGENCE = 0.05;
+let DODGE_RATE = 0.06;
+
+let PREDATOR_ALIVE = true;
+let PREDATOR_SIZE = 75;
+
+let MAX_SPEED = 5;
+let MIN_SPEED = -5;
+
+let TILE_SIDE = 60;
+
+let TURN_ZONE = 200;
 let SCREEN_WIDTH = window.innerWidth;
 let SCREEN_HEIGHT = window.innerHeight;
 let FPS = 48;
